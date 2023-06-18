@@ -1,0 +1,11 @@
+{
+  "include": ["src/**/*"],
+  "compilerOptions": {
+    "types": ["mocha"],
+    "target": "es2018",
+    "lib": ["ES2018", "es5", "es6", "dom", "dom.iterable"],
+    "moduleResolution": "node",
+    "experimentalDecorators": true,
+    "strict": true
+  }
+}
