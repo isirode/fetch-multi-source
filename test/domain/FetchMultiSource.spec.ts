@@ -180,11 +180,11 @@ describe('FetchProgress', () => {
           logger.error(`fetch failed`, onFailedData);
         });
 
-        const arrayFile = await fetchMultiSource.fetch(filename);
+        const response = await fetchMultiSource.fetch(filename);
 
         // then
-        expect(arrayFile.length).to.be.equal(expectedFileSize);
-        expect(arrayFile.length).to.be.equal(resourceInfo.length);
+        expect(response.data!.length).to.be.equal(expectedFileSize);
+        expect(response.data!.length).to.be.equal(resourceInfo.length);
       } catch (err: unknown) {
         console.log('an error occurred in the browser', err);
         await browser.debug();

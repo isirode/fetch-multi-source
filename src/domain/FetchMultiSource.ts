@@ -1,9 +1,10 @@
 import Emittery from 'emittery';
 import { ILogger, LoggerFactory } from 'log4j2-typescript';
 import pWaitFor from 'p-wait-for';
+import { IFetchResponse } from 'fetch-progress';
 
 export interface IFetcher {
-  fetch(input: RequestInfo | URL, init?: RequestInit | undefined): Promise<Uint8Array>;
+  fetch(input: RequestInfo | URL, init?: RequestInit | undefined): Promise<IFetchResponse>;
 }
 
 export interface ResourceInfo {
@@ -129,7 +130,7 @@ export class FetchMultiSource implements IFetcher {
     });
   }
 
-  async fetch(input: RequestInfo | URL, init?: RequestInit | undefined): Promise<Uint8Array> {
+  async fetch(input: RequestInfo | URL, init?: RequestInit | undefined): Promise<IFetchResponse> {
     const self = this;
 
     this.distributeWork(input, init);
@@ -204,7 +205,13 @@ export class FetchMultiSource implements IFetcher {
       data: result
     });
 
-    return result;
+    const response: IFetchResponse = {
+      status: 200,
+      statusText: 'OK',
+      data: result
+    };
+
+    return response;
   }
 
   protected distributeWork(input: RequestInfo | URL, init?: RequestInit | undefined) {
@@ -228,19 +235,25 @@ export class FetchMultiSource implements IFetcher {
       this.inProgressFetchers.push(fetcher);
       let requestInit: RequestInit = init ?? {};
       const promise = this.fetchPiece(input, requestInit, fetcher, piece);
-      promise.then(async (data) => {
+      promise.then(async (response) => {
+        // FIXME : is this the way the lack of data should be handled ?
+        if (response.data === undefined) {
+          const error = new Error('response data was undefined');
+          this.logger.error('an error occurred', {}, error);
+          throw error;
+        }
         // TODO : try catch and handle properly
-        piece.data = data;
+        piece.data = response.data;
 
         const expectedPieceLength = self.pieceLength(piece.index);
 
-        if (data.length !== expectedPieceLength) {
+        if (response.data.length !== expectedPieceLength) {
           self.handleFetchPieceError(
             input,
             fetcher,
             piece,
-            data.length < expectedPieceLength ? PieceFailureReason.BodySizeTooSmall : PieceFailureReason.BodySizeTooBig,
-            new Error(`piece ${piece.index} data length (${data.length}) is not the expected length ${expectedPieceLength}`)
+            response.data.length < expectedPieceLength ? PieceFailureReason.BodySizeTooSmall : PieceFailureReason.BodySizeTooBig,
+            new Error(`piece ${piece.index} data length (${response.data.length}) is not the expected length ${expectedPieceLength}`)
           );
           return;
         }
@@ -248,12 +261,12 @@ export class FetchMultiSource implements IFetcher {
         const expectedHash = self.resourceInfo.pieces[piece.index];
 
         // TODO : allow to customize the algorithm
-        const hash = hashToString(await crypto.subtle.digest(self.pieceHashAlgoritm, data));
+        const hash = hashToString(await crypto.subtle.digest(self.pieceHashAlgoritm, response.data));
 
         if (hash !== expectedHash) {
-          console.log('data length', data.length);
+          console.log('data length', response.data.length);
           console.log('expected length', this.resourceInfo.length);
-          console.log(data);
+          console.log(response.data);
           self.handleFetchPieceError(
             input,
             fetcher,
@@ -280,7 +293,7 @@ export class FetchMultiSource implements IFetcher {
     }
   }
 
-  protected fetchPiece(input: RequestInfo | URL, init: RequestInit, fetcher: IFetcher, piece: Piece): Promise<Uint8Array> {
+  protected fetchPiece(input: RequestInfo | URL, init: RequestInit, fetcher: IFetcher, piece: Piece): Promise<IFetchResponse> {
     const range: string = this.getRange(piece.index);
     init.headers = init.headers ?? {}
     init.headers['range' as keyof HeadersInit] = range;

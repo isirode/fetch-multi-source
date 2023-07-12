@@ -1,6 +1,6 @@
 {
   "name": "fetch-multi-source",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "This is a library allowing to fetch a resource from multiple sources",
   "main": "dist/main.js",
   "scripts": {
@@ -22,6 +22,7 @@
   "types": "dist/types.d.ts",
   "files": [
     "dist/*.js",
+    "dist/*.ts",
     "dist/*.map",
     "src/"
   ],
@@ -39,7 +40,6 @@
     "@wdio/mocha-framework": "8.10.7",
     "chai": "4.3.7",
     "events": "3.3.0",
-    "fetch-progress": "https://github.com/isirode/fetch-progress/releases/download/1.1.0/fetch-progress-1.1.0.tgz",
     "mocha": "10.2.0",
     "parcel": "2.9.2",
     "parse-torrent": "11.0.12",
@@ -54,6 +54,7 @@
     "buffer": "6.0.3",
     "emittery": "1.0.1",
     "log4j2-typescript": "https://github.com/isirode/log4j2-typescript/releases/download/1.0.2/log4j2-typescript-1.0.2.tgz",
+    "fetch-progress": "https://github.com/isirode/fetch-progress/releases/download/1.2.1/fetch-progress-1.2.1.tgz",
     "p-wait-for": "5.0.2"
   }
 }

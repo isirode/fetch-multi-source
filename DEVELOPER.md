@@ -75,9 +75,12 @@ I am not using [VSCode Nightly](https://webdriver.io/docs/debugging/) though.
 ## TODO
 
 - Implement an hash system
+
 - Provide diverse implementation of fetch
   - fetch and rename hostname
   - fetch by having the hostname as a 
+
+- Better handling of resources not found and such
 
 ## Design
 
